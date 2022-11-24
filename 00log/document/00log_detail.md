@@ -123,6 +123,29 @@
 ​	**步骤四：**在Handler处理器会将日志内容输出到指定位置（日志文件、控制台、网络上的其他日志服务或操作系统日志等等）
 ​	**步骤五：**在Handler在输出日志时会使用Layout，将输出内容进行排版，即格式化所需形式
 
+**测试案例**
+
+```
+    // 快速入门
+    @Test
+    public void testQuick()throws Exception{
+        // 1.获取日志记录器对象
+        Logger logger = Logger.getLogger("com.yj.nz.JULTest");
+        // 2.日志记录输出
+        logger.info("hello jul");
+
+        // 通用方法进行日志记录
+        logger.log(Level.INFO,"info msg");
+
+
+        // 通过占位符 方式输出变量值
+        String name = "yjxz";
+        Integer age = 13;
+        logger.log(Level.INFO,"用户信息：{0},{1}",new Object[]{name,age});
+
+    }
+```
+
 ### 3.1.3 日志级别
 
 #### 1.  JUL日志级别：
@@ -151,17 +174,220 @@
 
 ​		**2. ALL** 启用所有消息的日志记录
 
+#### 3. 日志级别输出
+
+​		假设：日志级别设置为L,一个级别为P的输出日志只有当P >= L时日志才会输出
+
+**测试案例**
+
+```
+    // 日志级别
+    @Test
+    public void testLogLevel()throws Exception{
+        // 1.获取日志记录器对象
+        Logger logger = Logger.getLogger("com.yj.nz.JULTest");
+        // 2.日志记录输出
+        logger.severe("severe");
+        logger.warning("warning");
+        logger.info("info"); // 默认日志输出级别
+        logger.config("config");
+        logger.fine("fine");
+        logger.finer("finer");
+        logger.finest("finest");
+
+    }
+```
+
+**自定义日志级别**
+
+```
+  // 自定义日志级别
+    @Test
+    public void testLogConfig()throws Exception{
+        // 1.获取日志记录器对象
+        Logger logger = Logger.getLogger("com.yj.nz.JULTest");
+
+
+        // 关闭系统默认配置
+        logger.setUseParentHandlers(false);
+
+        // 自定义配置日志级别
+        // 创建ConsolHhandler 控制台输出
+        ConsoleHandler consoleHandler = new ConsoleHandler();
+
+        // 创建简单格式转换对象
+        SimpleFormatter simpleFormatter = new SimpleFormatter();
+
+        // 进行关联
+        consoleHandler.setFormatter(simpleFormatter);
+        logger.addHandler(consoleHandler);
+
+
+        // 配置日志具体级别
+        logger.setLevel(Level.ALL);
+        consoleHandler.setLevel(Level.ALL);
+
+
+        // 场景FileHandler  文件输出
+        FileHandler fileHandler = new FileHandler("D:/logs/jul.log");
+
+        // 进行关联
+        fileHandler.setFormatter(simpleFormatter);
+        logger.addHandler(fileHandler);
+
+        // 2.日志记录输出
+        logger.severe("severe");
+        logger.warning("warning");
+        logger.info("info"); // 默认日志输出级别
+        logger.config("config");
+        logger.fine("fine");
+        logger.finer("finer");
+        logger.finest("finest");
+
+    }
+```
+
 ### 3.3.4 Logger之间的父子关系
 
 ​		JUL中Logger之间存在父子关系，这种父子关系通过树状结构存储，
 
 ​		JUL在初始化时会创建一个顶层RootLogger作为所有Logger的父Logger，
 
-​		存储上作为树状结构的根节点，并父子关系通过路径来关联
+​		存储上作为树状结构的根节点，并父子关系通过路径来关联,
+
+​		父亲所做的设置，也能够同时作用于儿子，
+
+​		例如：**com.yj.nz**所做的设置，会作用于**com.yj.nz.log**，简单就是说能作用于**com.yj.nz**包下的子目录或文件！
+
+**测试案例**
+
+```
+    // Logger对象父子关系
+    @Test
+    public void testLogParent()throws Exception{
+
+        Logger logger1 = Logger.getLogger("com.yj.nz.log");
+        Logger logger2 = Logger.getLogger("com.yj.nz");
+
+        // 测试
+        System.out.println(logger1.getParent() == logger2);
+        // 所有日志记录器的顶级父元素 LogManager$RootLogger，name ""
+        System.out.println("logger2 Parent:"+logger2.getParent() + ",name:" + logger2.getParent().getName());
+
+        // 关闭默认配置
+        logger2.setUseParentHandlers(false);
+
+        // 设置logger2日志级别
+        // 自定义配置日志级别
+        // 创建ConsolHhandler 控制台输出
+        ConsoleHandler consoleHandler = new ConsoleHandler();
+
+        // 创建简单格式转换对象
+        SimpleFormatter simpleFormatter = new SimpleFormatter();
+
+        // 进行关联
+        consoleHandler.setFormatter(simpleFormatter);
+        logger2.addHandler(consoleHandler);
+
+
+        // 配置日志具体级别
+        logger2.setLevel(Level.ALL);
+        consoleHandler.setLevel(Level.ALL);
+
+        logger1.severe("severe");
+        logger1.warning("warning");
+        logger1.info("info");
+        logger1.config("config");
+        logger1.fine("fine");
+        logger1.finer("finer");
+        logger1.finest("finest");
+    }
+```
 
 ### 3.3.5 日志的配置文件
 
 ​		默认配置文件路径$JAVAHOME\jre\lib\logging.properties
+
+**自定义日志配置文件**
+
+```
+# RootLogger 顶级父元素指定的默认处理器为：ConsoleHandler
+handlers= java.util.logging.FileHandler
+
+# RootLogger 顶级父元素默认的日志级别为：ALL
+.level= ALL
+
+# 自定义 Logger 使用
+com.yj.nz.handlers = java.util.logging.ConsoleHandler
+com.yj.nz.level = CONFIG
+
+# 关闭默认配置
+com.yj.nz.useParentHanlders = false
+
+
+# 向日志文件输出的 handler 对象
+# 指定日志文件路径 /logs/java0.log
+java.util.logging.FileHandler.pattern = D:/logs/java%u.log
+# 指定日志文件内容大小
+java.util.logging.FileHandler.limit = 50000
+# 指定日志文件数量
+java.util.logging.FileHandler.count = 1
+# 指定 handler 对象日志消息格式对象
+java.util.logging.FileHandler.formatter = java.util.logging.SimpleFormatter
+# 指定以追加方式添加日志内容
+java.util.logging.FileHandler.append = true
+
+
+# 向控制台输出的 handler 对象
+# 指定 handler 对象的日志级别
+java.util.logging.ConsoleHandler.level = ALL
+# 指定 handler 对象的日志消息格式对象
+java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter
+# 指定 handler 对象的字符集
+java.util.logging.ConsoleHandler.encoding = UTF-8
+
+# 指定日志消息格式
+java.util.logging.SimpleFormatter.format = %4$s: %5$s [%1$tc]%n
+```
+
+**测试加载自定义配置文件**
+
+```
+ // 加载自定义配置文件
+    @Test
+    public void testLogProperties()throws Exception{
+
+        // 读取配置文件，通过类加载器
+        InputStream ins = JULTest.class.getClassLoader().getResourceAsStream("logging.properties");
+        // 创建LogManager
+        LogManager logManager = LogManager.getLogManager();
+        // 通过LogManager加载配置文件
+        logManager.readConfiguration(ins);
+
+        // 创建日志记录器
+        Logger logger = Logger.getLogger("com.yj.nz");
+
+        logger.severe("severe");
+        logger.warning("warning");
+        logger.info("info");
+        logger.config("config");
+        logger.fine("fine");
+        logger.finer("finer");
+        logger.finest("finest");
+
+
+        Logger logger2 = Logger.getLogger("test");
+
+        logger2.severe("severe test");
+        logger2.warning("warning test");
+        logger2.info("info test");
+        logger2.config("config test");
+        logger2.fine("fine test");
+        logger2.finer("finer test");
+        logger2.finest("finest test");
+
+    }
+```
 
 ### 3.3.6 日志原理解析
 
@@ -169,7 +395,7 @@
 
 ​	1. LogManager加载logging.properties配置
 
- 	2. 添加Logger到LogManager
+​	2. 添加Logger到LogManager
 
 **2. 从单例LogManager获取Logger**
 
@@ -199,7 +425,66 @@
 
 #### 2. 添加依赖
 
+```
+  		<dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+        </dependency>
+```
+
 #### 3. java代码
+
+```
+public class Log4jTest {
+
+    // 快速入门
+    @Test
+    public void testQuick()throws Exception{
+
+        // 开启 log4j 内置日志记录
+        LogLog.setInternalDebugging(true);
+
+        // 初始化配置信息，在入门案例中暂不使用配置文件
+        // BasicConfigurator.configure();
+
+        // 获取日志记录器对象
+        Logger logger = Logger.getLogger(Log4jTest.class);
+        // 日志记录输出
+        logger.info("hello log4j");
+
+
+        //for (int i = 0; i < 10000; i++) {
+
+            // 日志级别
+            logger.fatal("fatal"); // 严重错误，一般会造成系统崩溃并终止运行
+
+            logger.error("error"); // 错误信息，不会影响系统运行
+            logger.warn("warn");   // 警告信息，可能会发生问题
+            logger.info("info");   // 运行信息，数据连接、网络连接、IO 操作等等
+            logger.debug("debug"); // 调试信息，一般在开发中使用，记录程序变量参数传递信息等等
+
+            logger.trace("trace"); // 追踪信息，记录程序所有的流程信息
+        //}
+
+
+        // 再创建一个日志记录器对象
+        Logger logger1 = Logger.getLogger(Logger.class);
+        logger1.fatal("fatal logger1"); // 严重错误，一般会造成系统崩溃并终止运行
+        logger1.error("error logger1"); // 错误信息，不会影响系统运行
+        logger1.warn("warn logger1");   // 警告信息，可能会发生问题
+        logger1.info("info logger1");   // 运行信息，数据连接、网络连接、IO 操作等等
+        logger1.debug("debug logger1"); // 调试信息，一般在开发中使用，记录程序变量参数传递信息等等
+        logger1.trace("trace logger1"); // 追踪信息，记录程序所有的流程信息
+
+    }
+```
 
 ### 3.2.3 日志的级别
 
@@ -217,7 +502,7 @@
 
 ​	**4. info** 一般和在粗粒度级别上，强调应用程序的运行全程
 
- 	**5. debug** 一般用于细粒度级别上，对调试应用程序非常有帮助!
+​	**5. debug** 一般用于细粒度级别上，对调试应用程序非常有帮助!
 
 ​	**6.  trace** 程序追踪，可用于输出程序运行中的变量，显示执行的流程
 
@@ -412,9 +697,23 @@ CREATE TABLE `log` (
 );
 ```
 
+#### 5. 自定义logger
+
+```
+# 指定 RootLogger 顶级父元素默认配置信息
+# 指定日志级别=trace，使用的 apeender 为=console
+log4j.rootLogger = trace,console
+
+# 自定义 logger 对象设置
+log4j.logger.com.yj.nz = info,console
+log4j.logger.org.apache = error
+```
+
 # 4. 日志门面
 
-## 4.1 什么是JCL
+## 4.1 JCL
+
+### 4.1.1 什么是JCL
 
 ​	JCL 全称为**Jakarta Commons Logging**，是Apache提供的一个通用日志API
 
@@ -432,11 +731,11 @@ CREATE TABLE `log` (
 
 ![image-20221122153224953](assets\image-20221122153224953.png)
 
-## 4.2 JCL入门
+### 4.1.2 JCL入门
 
-### 1. 建立maven工程
+#### 1. 建立maven工程
 
-### 2. 添加依赖
+#### 2. 添加依赖
 
 ```
 <dependency>    
@@ -446,9 +745,19 @@ CREATE TABLE `log` (
 </dependency>
 ```
 
-### 3. 入门代码
+#### 3. 入门代码
 
-## 4.3 为什么要使用日志门面
+```
+    @Test
+    public void testQuick() throws Exception {
+        // 获取 log日志记录器对象
+        Log log = LogFactory.getLog(JCLTest.class);
+        // 日志记录输出
+        log.info("hello jcl");
+    }
+```
+
+### 4.1.3 为什么要使用日志门面
 
 > ​	**1. 面向接口开发，不再依赖具体的实现类，减少代码的耦合**
 >
@@ -458,7 +767,7 @@ CREATE TABLE `log` (
 >
 > ​	**4. 统一配置便于项目日志的管理**
 
-## 4.4 JCL原理
+### 4.1.4 JCL原理
 
 **1. 通过LogFactory动态加载Log实现类** 
 
