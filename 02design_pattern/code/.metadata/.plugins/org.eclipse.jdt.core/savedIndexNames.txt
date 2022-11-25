@@ -1,5 +1,0 @@
-INDEX VERSION 1.131+D:\yjxz\Review_outline\design_pattern\code\.metadata\.plugins\org.eclipse.jdt.core
-2554997782.index
-1379495742.index
-3426918794.index
-886030372.index
