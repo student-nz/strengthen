@@ -44,7 +44,8 @@ public class d2_EvenTimesOddTimes {
 		//   000000010000     1
 		
 		//   011011000000
-		// 
+		//
+
 
 		while(N != 0) {
 			int rightOne = N & ((~N) + 1);
@@ -57,7 +58,8 @@ public class d2_EvenTimesOddTimes {
 		
 	}
 	
-	
+
+
 	public static void main(String[] args) {
 		int a = 5;
 		int b = 7;
